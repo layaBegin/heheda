@@ -1,0 +1,30 @@
+server:
+  port: 18080
+dubbo:
+  application:
+    name: tanhua-server
+  registry:
+    address: zookeeper://192.168.199.130:2181
+
+tanhua:
+  secret: itcast
+  sms:
+    signName: 袁小杰
+    templateCode: SMS_99320050
+    accessKey: LTAI6oNQblwg4mjc
+    secret: pBJAfwYp0bo4EZWiBA5LfOK1qgMHln
+  oss:
+    accessKey: LTAI5tKyzYr9nE2uw6PxQkyd
+    secret: FZwdXC41ZBddJvb4Q4Weo09dJEBAhW
+    bucketName: test-tanhua1101
+    endpoint: oss-ap-southeast-6.aliyuncs.com
+    url: https://test-tanhua1101.oss-ap-southeast-6.aliyuncs.com
+  aip:
+    appId: 22978042
+    apiKey: G9BI9o5Gw9lKuP0RD2kvOsWS
+    secretKey: RA0YDyM7ZTlGQqRd1qPyqAUVr1ze4j1s
+spring:
+  redis:
+    host: 192.168.199.130
+    port: 6379
+
