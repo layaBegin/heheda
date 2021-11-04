@@ -12,4 +12,6 @@ public interface UserInfoApi {
     void save(UserInfo userInfo);
 
     void updateById(UserInfo userInfo);
+
+    UserInfo findById(Long userId);
 }

@@ -6,12 +6,15 @@ import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.commons.templates.SmsTemplate;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.vo.ErrorResult;
+import com.tanhua.domain.vo.UserInfoVo;
 import com.tanhua.dubbo.api.UserApi;
 import com.tanhua.domain.db.User;
 import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.server.utils.JwtUtils;
+import com.tanhua.server.utils.UserHolder;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.dubbo.config.annotation.Reference;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -124,9 +127,9 @@ public class UserService {
     }
 
     //保存用户信息
-    public ResponseEntity<Object> loginReginfo(UserInfo userInfo,String token){
+    public ResponseEntity<Object> loginReginfo(UserInfo userInfo){
         //1,校验token
-        User user = findByToken(token);
+        User user = UserHolder.get();
         if (user == null){
             return ResponseEntity.status(500).body(ErrorResult.error());
         }
@@ -136,9 +139,9 @@ public class UserService {
         return ResponseEntity.ok(null);
     }
 
-    public ResponseEntity<Object> updateHead(MultipartFile headPhoto, String token) throws IOException {
+    public ResponseEntity<Object> updateHead(MultipartFile headPhoto) throws IOException {
         //1.检测token
-        User user = findByToken(token);
+        User user = UserHolder.get();
         if (user == null){
             return ResponseEntity.status(500).body(ErrorResult.error());
         }
@@ -173,4 +176,36 @@ public class UserService {
     }
 
 
+    /**
+     * 接口名称：用户资料 - 读取
+     * @param
+     * @return
+     */
+    public ResponseEntity<Object> findUserInfoById() {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Long id1 = user.getId();
+        UserInfo userInfo = userInfoApi.findById(id1);
+        UserInfoVo userInfoVo = new UserInfoVo();
+        //对象拷贝
+        BeanUtils.copyProperties(userInfo,userInfoVo);
+        //类型不同，不会拷贝
+        if (userInfo.getAge() != null){
+            userInfoVo.setAge(userInfo.getAge().toString());
+        }
+        return ResponseEntity.ok(userInfoVo);
+    }
+
+    public ResponseEntity<Object> updateUserInfo(UserInfo userInfo) {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Long id = user.getId();
+        userInfo.setId(id);
+        userInfoApi.updateById(userInfo);
+        return ResponseEntity.ok(null);
+    }
 }

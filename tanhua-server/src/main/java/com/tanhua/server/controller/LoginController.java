@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("/user")
 public class LoginController {
 
     @Autowired
@@ -63,9 +63,8 @@ public class LoginController {
      */
     @PostMapping("/loginReginfo")
     public ResponseEntity<Object> loginReginfo(
-            @RequestBody UserInfo userInfo,
-            @RequestHeader("Authorization") String token){
-        return userService.loginReginfo(userInfo,token);
+            @RequestBody UserInfo userInfo){
+        return userService.loginReginfo(userInfo);
     }
 
     /*
@@ -73,10 +72,8 @@ public class LoginController {
     MultipartFile springmvc 中用来封装上传文件的对象
      */
     @PostMapping("/loginReginfo/head")
-    public ResponseEntity<Object> updateHead(MultipartFile headPhoto,@RequestHeader("Authorization") String token) throws IOException {
-
-
-        return userService.updateHead(headPhoto,token);
+    public ResponseEntity<Object> updateHead(MultipartFile headPhoto) throws IOException {
+        return userService.updateHead(headPhoto);
 
     }
 
