@@ -14,4 +14,6 @@ public interface UserInfoApi {
     void updateById(UserInfo userInfo);
 
     UserInfo findById(Long userId);
+
+    //void selectPage(Integer page, Integer pagesize);
 }

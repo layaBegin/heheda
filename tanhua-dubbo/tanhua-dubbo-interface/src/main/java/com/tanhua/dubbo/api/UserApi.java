@@ -17,4 +17,7 @@ public interface UserApi {
      * @return 返回查询的用户
      */
     User findByMobile(String mobile);
+
+
+    //void selectPage(Integer page, Integer pagesize);
 }

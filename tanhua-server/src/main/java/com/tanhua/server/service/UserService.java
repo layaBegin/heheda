@@ -1,15 +1,20 @@
 package com.tanhua.server.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.spring.util.AnnotationUtils;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tanhua.commons.templates.AipFaceTemplate;
 import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.commons.templates.SmsTemplate;
+import com.tanhua.domain.db.Question;
+import com.tanhua.domain.db.Settings;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.vo.ErrorResult;
+import com.tanhua.domain.vo.PageResult;
+import com.tanhua.domain.vo.SettingsVo;
 import com.tanhua.domain.vo.UserInfoVo;
-import com.tanhua.dubbo.api.UserApi;
+import com.tanhua.dubbo.api.*;
 import com.tanhua.domain.db.User;
-import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.server.utils.JwtUtils;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -37,10 +42,17 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class UserService {
 
+    //用 dubbo 的Reference注解
     @Reference
     private UserApi userApi;
     @Reference
     private UserInfoApi userInfoApi;
+    @Reference
+    private SettingsApi settingsApi;
+    @Reference
+    private QuestionApi questionApi;
+    @Reference
+    private BlackListApi blackListApi;
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
     @Autowired
@@ -206,6 +218,85 @@ public class UserService {
         Long id = user.getId();
         userInfo.setId(id);
         userInfoApi.updateById(userInfo);
+        return ResponseEntity.ok(null);
+    }
+
+    public ResponseEntity<Object> querySettings() {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Long id = user.getId();
+        Settings settings = settingsApi.findSettingsByUserId(id);
+        SettingsVo settingsVo = new SettingsVo();
+        BeanUtils.copyProperties(settings,settingsVo);
+        settingsVo.setPhone(user.getMobile());
+        Question question = questionApi.findQuestionByUserId(id);
+        settingsVo.setStrangerQuestion(question != null ? question.getTxt() : "你好，baby");
+        return ResponseEntity.ok(settingsVo);
+    }
+
+    public ResponseEntity<Object> updateSettings(Settings param) {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Settings setting = settingsApi.findSettingsByUserId(user.getId());
+        if (setting != null){
+            setting.setLikeNotification(param.getLikeNotification());
+            setting.setPinglunNotification(param.getPinglunNotification());
+            setting.setGonggaoNotification(param.getGonggaoNotification());
+            settingsApi.update(setting);
+        }else {
+            setting = new Settings();
+            BeanUtils.copyProperties(param,setting);
+            setting.setUserId(user.getId());
+            settingsApi.saveSettings(setting);
+        }
+        return ResponseEntity.ok(null);
+    }
+
+    public ResponseEntity<Object> saveQuestions(String content) {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Long id = user.getId();
+        Question question = questionApi.findQuestionByUserId(id);
+        if (question != null){
+            question.setTxt(content);
+            questionApi.update(question);
+        }else {
+            question = new Question();
+            question.setUserId(id);
+            question.setTxt(content);
+            questionApi.save(question);
+        }
+
+        return ResponseEntity.ok(null);
+    }
+
+    public ResponseEntity<Object> blacklist(Integer page, Integer pagesize) {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Long id = user.getId();
+
+        IPage<UserInfo> ipage = blackListApi.blackList(id, page, pagesize);
+
+        PageResult pageResult = new PageResult(page,pagesize,(int)ipage.getTotal(),ipage.getRecords());
+
+        return ResponseEntity.ok(pageResult);
+    }
+
+    public ResponseEntity<Object> deleteBlack(Long uid) {
+        User user = UserHolder.get();
+        if (user == null){
+            return ResponseEntity.status(500).body(ErrorResult.error());
+        }
+        Long id = user.getId();
+        blackListApi.deleteBlackByUid(id,uid);
         return ResponseEntity.ok(null);
     }
 }

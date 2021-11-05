@@ -1,5 +1,8 @@
 package com.tanhua.dubbo.api.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tanhua.domain.db.User;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.dubbo.mapper.UserInfoMapper;
@@ -35,4 +38,6 @@ public class UserInfoApiImpl implements UserInfoApi {
     public UserInfo findById(Long userId) {
         return userInfoMapper.selectById(userId);
     }
+
+
 }

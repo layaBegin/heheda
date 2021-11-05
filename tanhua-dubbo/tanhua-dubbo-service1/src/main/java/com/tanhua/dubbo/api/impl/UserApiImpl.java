@@ -1,7 +1,10 @@
 package com.tanhua.dubbo.api.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tanhua.domain.db.User;
+import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.UserApi;
 import com.tanhua.dubbo.mapper.UserMapper;
 import org.apache.dubbo.config.annotation.Service;
@@ -32,4 +35,6 @@ public class UserApiImpl implements UserApi {
         return userMapper.selectOne(queryWrapper);
 
     }
+
+
 }

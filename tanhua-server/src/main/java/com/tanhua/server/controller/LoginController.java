@@ -50,7 +50,7 @@ public class LoginController {
     public ResponseEntity<Object> login(@RequestBody Map<String,String> paramMap){
         return userService.login(paramMap);
     }
-
+    //短信验证码
     @PostMapping("/loginVerification")
     public ResponseEntity<Object> loginVerification(@RequestBody Map<String,String> paramMap){
         return userService.loginVerification(paramMap);
