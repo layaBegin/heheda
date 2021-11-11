@@ -9,6 +9,9 @@ spring:
     url: jdbc:mysql://localhost:3306/tanhua?characterEncoding=utf8
     username: root
     password: root
+  data:
+    mongodb:
+      uri: mongodb://192.168.199.130:27017/tanhua #后面一定要跟数据库的名字
 
 # dubbo相关配置
 dubbo:

@@ -28,4 +28,7 @@ spring:
   redis:
     host: 192.168.199.130
     port: 6379
-
+  servlet:
+    multipart:
+      max-file-size: 20MB  #单个文件的大小
+      max-request-size: 30MB #单次请求的大小（单次请求可以上传多个文件，所以要比上面的值大）

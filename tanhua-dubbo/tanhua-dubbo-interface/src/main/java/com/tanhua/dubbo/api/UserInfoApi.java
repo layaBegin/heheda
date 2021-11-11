@@ -1,5 +1,6 @@
 package com.tanhua.dubbo.api;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tanhua.domain.db.User;
 import com.tanhua.domain.db.UserInfo;
 
@@ -15,5 +16,4 @@ public interface UserInfoApi {
 
     UserInfo findById(Long userId);
 
-    //void selectPage(Integer page, Integer pagesize);
 }
