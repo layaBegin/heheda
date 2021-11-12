@@ -39,4 +39,23 @@ public class MovementsController {
         if(page<1) page = 1;
         return movementsService.queryPublishList(page,pagesize);
     }
+
+    ///movements/recommend
+    @GetMapping("/recommend")
+    public ResponseEntity<Object> queryRecommend(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pagesize) throws IOException {
+        if(page<1) page = 1;
+        return movementsService.queryRecommend(page,pagesize);
+    }
+
+    ///movements/all
+    @GetMapping("/all")
+    public ResponseEntity<Object> queryUserMovements(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pagesize,Long userId) throws IOException {
+        if(page<1) page = 1;
+
+        return movementsService.queryUserMovements(page,pagesize,userId);
+    }
 }

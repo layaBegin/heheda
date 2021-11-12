@@ -5,6 +5,7 @@ package com.tanhua.server.service;
 import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.db.Publish;
+import com.tanhua.domain.mongo.db.RecommendQuanzi;
 import com.tanhua.domain.mongo.vo.MovementsVo;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.UserInfoApi;
@@ -12,6 +13,7 @@ import com.tanhua.dubbo.api.mongo.PublishApi;
 import com.tanhua.server.utils.RelativeDateFormat;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.dubbo.config.annotation.Reference;
+import org.bson.types.ObjectId;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -76,28 +78,8 @@ public class MovementsService {
         //3.2 遍历查询的发布动态集合
         if (publishList != null) {
             for (Publish publish : publishList) {
-                //3.2.1 创建vo对象
-                MovementsVo vo = new MovementsVo();
-                //3.2.2 封装数据：发布动态
-                BeanUtils.copyProperties(publish,vo);
-                //3.2.3 封装数据：先查询用户详情，再封装
-                UserInfo userInfo = userInfoApi.findById(publish.getUserId());
-                if (userInfo != null) {
-                    BeanUtils.copyProperties(userInfo,vo);
-                    if (userInfo.getTags() != null) {
-                        vo.setTags(userInfo.getTags().split(","));
-                    }
-                }
-                //3.2.3 封装数据：其他参数
-                vo.setId(publish.getId().toString());
-                vo.setUserId(publish.getUserId());
-                vo.setImageContent(publish.getMedias().toArray(new String[]{}));
-                vo.setDistance("50米");
-                vo.setCreateDate(RelativeDateFormat.format(new Date(publish.getCreated())));
 
-                vo.setHasLiked(0);
-                vo.setHasLoved(0);
-
+                MovementsVo vo = this._getMovementsVo(publish);
                 //3.2.4 对象添加到集合
                 voList.add(vo);
             }
@@ -106,5 +88,66 @@ public class MovementsService {
         //4. 在把封装好的vo集合设置到分页对象中
         pageResult.setItems(voList);
         return ResponseEntity.ok(pageResult);
+    }
+
+    private MovementsVo _getMovementsVo(Publish publish){
+        //3.2.1 创建vo对象
+        MovementsVo vo = new MovementsVo();
+        //3.2.2 封装数据：发布动态
+        BeanUtils.copyProperties(publish,vo);
+        //3.2.3 封装数据：先查询用户详情，再封装
+        UserInfo userInfo = userInfoApi.findById(publish.getUserId());
+        if (userInfo != null) {
+            BeanUtils.copyProperties(userInfo,vo);
+            if (userInfo.getTags() != null) {
+                vo.setTags(userInfo.getTags().split(","));
+            }
+        }
+        //3.2.3 封装数据：其他参数
+        vo.setId(publish.getId().toString());
+        vo.setUserId(publish.getUserId());
+        vo.setImageContent(publish.getMedias().toArray(new String[]{}));
+        vo.setDistance("50米");
+        vo.setCreateDate(RelativeDateFormat.format(new Date(publish.getCreated())));
+
+        vo.setHasLiked(0);
+        vo.setHasLoved(0);
+        return vo;
+    }
+
+    public ResponseEntity<Object> queryRecommend(Integer page, Integer pagesize) {
+        //1. 获取登陆用户id
+        Long userId = UserHolder.getUserId();
+        PageResult result = publishApi.findRecommend(userId,page,pagesize);
+        List<Publish> publishList = (List<Publish>)result.getItems();
+        List<MovementsVo> movementsVoList = new ArrayList<>();
+        for (Publish publish :
+                publishList) {
+            MovementsVo movementsVo = this._getMovementsVo(publish);
+            if (movementsVo != null){
+                movementsVoList.add(movementsVo);
+            }
+        }
+        result.setItems(movementsVoList);
+        return  ResponseEntity.ok(result);
+    }
+
+
+    public ResponseEntity<Object> queryUserMovements(Integer page, Integer pagesize, Long userId) {
+        if (userId == null){
+            userId = UserHolder.getUserId();
+        }
+        PageResult result = publishApi.findAlbum(page,pagesize,userId);
+        List<Publish> publishList = (List<Publish>)result.getItems();
+        List<MovementsVo> movementsVoList = new ArrayList<>();
+        for (Publish publish :
+                publishList) {
+            MovementsVo movementsVo = this._getMovementsVo(publish);
+            if (movementsVo != null){
+                movementsVoList.add(movementsVo);
+            }
+        }
+        result.setItems(movementsVoList);
+        return ResponseEntity.ok(result);
     }
 }

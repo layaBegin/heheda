@@ -15,4 +15,7 @@ public interface PublishApi {
     PageResult findByTimeLine(Integer page, Integer pagesize, Long userId);
 
 
+    PageResult findRecommend(Long userId, Integer page, Integer pagesize);
+
+    PageResult findAlbum(Integer page, Integer pagesize, Long userId);
 }

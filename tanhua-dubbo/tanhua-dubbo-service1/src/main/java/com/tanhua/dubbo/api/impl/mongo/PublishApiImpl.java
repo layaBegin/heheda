@@ -1,10 +1,7 @@
 package com.tanhua.dubbo.api.impl.mongo;
 
 
-import com.tanhua.domain.mongo.db.Album;
-import com.tanhua.domain.mongo.db.Friend;
-import com.tanhua.domain.mongo.db.Publish;
-import com.tanhua.domain.mongo.db.TimeLine;
+import com.tanhua.domain.mongo.db.*;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.mongo.PublishApi;
 import org.apache.dubbo.config.annotation.Service;
@@ -90,5 +87,44 @@ public class PublishApiImpl implements PublishApi {
         }
         //3、创建分页对象、封装结果并返回
         return new PageResult(page,pagesize, (int) count,publishList);
+    }
+
+    @Override
+    public PageResult findRecommend(Long userId, Integer page, Integer pagesize) {
+        Query query = new Query(Criteria.where("userId").is(userId));
+        query.with(Sort.by(Sort.Order.desc("score")));//score 降序排序
+        query.limit(pagesize).skip((page-1)* pagesize);
+        List<RecommendQuanzi> recommendQuanzis = mongoTemplate.find(query, RecommendQuanzi.class);
+        long count = mongoTemplate.count(query, RecommendQuanzi.class);
+        List<Publish> publishList = new ArrayList<>();
+        for (RecommendQuanzi recommendQuanzi : recommendQuanzis) {
+            ObjectId publishId = recommendQuanzi.getPublishId();
+            Publish publish = mongoTemplate.findById(publishId, Publish.class);
+            if (publish != null) {
+                publishList.add(publish);
+            }
+        }
+        PageResult pageResult = new PageResult(page,pagesize,(int)count,publishList);
+        return pageResult;
+    }
+
+    @Override
+    public PageResult findAlbum(Integer page, Integer pagesize, Long userId) {
+        Query query = new Query();
+        query.with(Sort.by(Sort.Order.desc("created")));
+        List<Album> albums = mongoTemplate.find(query, Album.class, "quanzi_album_" + userId);
+        long count = mongoTemplate.count(query, Album.class, "quanzi_album_" + userId);
+
+        List<Publish> publishList = new ArrayList<>();
+        for (Album album : albums) {
+            ObjectId publishId = album.getPublishId();
+            Publish publish = mongoTemplate.findById(publishId, Publish.class);
+            if (publish != null) {
+                publishList.add(publish);
+            }
+        }
+        PageResult result = new PageResult(page,pagesize,(int)count,publishList);
+
+        return result;
     }
 }
