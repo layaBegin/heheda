@@ -1,6 +1,7 @@
 package com.tanhua.server.controller;
 
 import com.tanhua.domain.mongo.db.Publish;
+import com.tanhua.server.service.CommentService;
 import com.tanhua.server.service.MovementsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,8 @@ public class MovementsController {
     @Autowired
     private MovementsService movementsService;
 
+    @Autowired
+    private CommentService commentService;
     /**
      * 接口名称：动态-发布
      * 接口路径：POST/movements
@@ -57,5 +60,12 @@ public class MovementsController {
         if(page<1) page = 1;
 
         return movementsService.queryUserMovements(page,pagesize,userId);
+    }
+
+
+    ///movements/:id/like
+    @GetMapping("{id}/like")
+    public ResponseEntity<Object> saveLike(@PathVariable("id") String publishId){
+        return commentService.saveLike(publishId);
     }
 }

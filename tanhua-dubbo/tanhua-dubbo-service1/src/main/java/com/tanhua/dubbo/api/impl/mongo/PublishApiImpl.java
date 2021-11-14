@@ -1,6 +1,7 @@
 package com.tanhua.dubbo.api.impl.mongo;
 
 
+import com.mongodb.client.result.UpdateResult;
 import com.tanhua.domain.mongo.db.*;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.mongo.PublishApi;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -127,4 +129,6 @@ public class PublishApiImpl implements PublishApi {
 
         return result;
     }
+
+
 }

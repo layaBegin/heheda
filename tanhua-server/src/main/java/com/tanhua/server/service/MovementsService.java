@@ -4,11 +4,13 @@ package com.tanhua.server.service;
 
 import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.domain.mongo.db.Comment;
 import com.tanhua.domain.mongo.db.Publish;
 import com.tanhua.domain.mongo.db.RecommendQuanzi;
 import com.tanhua.domain.mongo.vo.MovementsVo;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.UserInfoApi;
+import com.tanhua.dubbo.api.mongo.CommentApi;
 import com.tanhua.dubbo.api.mongo.PublishApi;
 import com.tanhua.server.utils.RelativeDateFormat;
 import com.tanhua.server.utils.UserHolder;
@@ -16,6 +18,7 @@ import org.apache.dubbo.config.annotation.Reference;
 import org.bson.types.ObjectId;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +37,8 @@ public class MovementsService {
     private PublishApi publishApi;
     @Reference
     private UserInfoApi userInfoApi;
-    ;
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
     /**
      * 接口名称：动态-发布
      */
@@ -109,8 +113,14 @@ public class MovementsService {
         vo.setImageContent(publish.getMedias().toArray(new String[]{}));
         vo.setDistance("50米");
         vo.setCreateDate(RelativeDateFormat.format(new Date(publish.getCreated())));
+        String key = "public_like_comment_" + UserHolder.getUserId() + publish.getId().toString();
+        String s = redisTemplate.opsForValue().get(key);
+        int like = 0;
+        if (s != null){
+            like = Integer.parseInt(s);
+        }
 
-        vo.setHasLiked(0);
+        vo.setHasLiked(like);
         vo.setHasLoved(0);
         return vo;
     }
@@ -150,4 +160,6 @@ public class MovementsService {
         result.setItems(movementsVoList);
         return ResponseEntity.ok(result);
     }
+
+
 }

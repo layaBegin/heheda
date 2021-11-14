@@ -3,6 +3,7 @@ package com.tanhua.dubbo.api.mongo;
 
 import com.tanhua.domain.mongo.db.Publish;
 import com.tanhua.domain.vo.PageResult;
+import org.bson.types.ObjectId;
 
 public interface PublishApi {
     /**
@@ -18,4 +19,5 @@ public interface PublishApi {
     PageResult findRecommend(Long userId, Integer page, Integer pagesize);
 
     PageResult findAlbum(Integer page, Integer pagesize, Long userId);
+
 }
