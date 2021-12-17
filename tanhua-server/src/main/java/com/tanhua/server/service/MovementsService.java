@@ -117,11 +117,16 @@ public class MovementsService {
         String s = redisTemplate.opsForValue().get(key);
         int like = 0;
         if (s != null){
-            like = Integer.parseInt(s);
+            like = 1;
         }
-
+        String loveKey = "public_love_comment_" + UserHolder.getUserId() + publish.getId().toString();
+        String sLove = redisTemplate.opsForValue().get(loveKey);
+        int love = 0;
+        if (sLove != null){
+            love = 1;
+        }
         vo.setHasLiked(like);
-        vo.setHasLoved(0);
+        vo.setHasLoved(love);
         return vo;
     }
 
@@ -142,6 +147,12 @@ public class MovementsService {
         return  ResponseEntity.ok(result);
     }
 
+    public ResponseEntity<Object> queryOneMoveMent(String publishId) {
+        Publish publish = publishApi.findOne(publishId);
+        MovementsVo vo = this._getMovementsVo(publish);
+        return ResponseEntity.ok(vo);
+    }
+
 
     public ResponseEntity<Object> queryUserMovements(Integer page, Integer pagesize, Long userId) {
         if (userId == null){
@@ -160,6 +171,7 @@ public class MovementsService {
         result.setItems(movementsVoList);
         return ResponseEntity.ok(result);
     }
+
 
 
 }

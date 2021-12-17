@@ -130,5 +130,12 @@ public class PublishApiImpl implements PublishApi {
         return result;
     }
 
+    @Override
+    public Publish findOne(String publishId) {
+        Publish publish = mongoTemplate.findById(new ObjectId(publishId), Publish.class);
+
+        return publish;
+    }
+
 
 }

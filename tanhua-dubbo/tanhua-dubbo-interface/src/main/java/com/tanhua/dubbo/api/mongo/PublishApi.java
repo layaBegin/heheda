@@ -20,4 +20,5 @@ public interface PublishApi {
 
     PageResult findAlbum(Integer page, Integer pagesize, Long userId);
 
+    Publish findOne(String publishId);
 }

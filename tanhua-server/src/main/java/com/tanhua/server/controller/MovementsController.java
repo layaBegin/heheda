@@ -43,6 +43,12 @@ public class MovementsController {
         return movementsService.queryPublishList(page,pagesize);
     }
 
+    ///单条动态/movements/:id
+    @GetMapping("{id}")
+    public ResponseEntity<Object> queryOneMoveMent(@PathVariable("id") String publishId) throws IOException {
+        return movementsService.queryOneMoveMent(publishId);
+    }
+
     ///movements/recommend
     @GetMapping("/recommend")
     public ResponseEntity<Object> queryRecommend(
@@ -68,4 +74,24 @@ public class MovementsController {
     public ResponseEntity<Object> saveLike(@PathVariable("id") String publishId){
         return commentService.saveLike(publishId);
     }
+
+    ////movements/:id/dislike
+    @GetMapping("{id}/dislike")
+    public ResponseEntity<Object> disLike(@PathVariable("id") String publishId){
+        return commentService.disLike(publishId);
+    }
+
+    ///movements/:id/love
+    @GetMapping("{id}/love")
+    public ResponseEntity<Object> love(@PathVariable("id") String publishId){
+        return commentService.love(publishId);
+    }
+
+    ///movements/:id/unlove
+    @GetMapping("{id}/unlove")
+    public ResponseEntity<Object> unlove(@PathVariable("id") String publishId){
+        return commentService.unlove(publishId);
+    }
+
+
 }
