@@ -20,7 +20,7 @@ public class VideoTest {
     @Test
     public void testSaveVideos() {
 
-        for (int i = 1; i <=2; i++) {
+        for (int i = 1; i <=20; i++) {
             Video video = new Video();
             video.setPicUrl("https://tanhua-dev.oss-cn-zhangjiakou.aliyuncs.com/images/video/video_"+i+".png");
             video.setVideoUrl("https://tanhua-dev.oss-cn-zhangjiakou.aliyuncs.com/images/video/1576134125940400.mp4");
