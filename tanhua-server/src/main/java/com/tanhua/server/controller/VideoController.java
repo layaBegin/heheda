@@ -1,5 +1,6 @@
 package com.tanhua.server.controller;
 
+import com.tanhua.domain.vo.PageResult;
 import com.tanhua.server.service.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,19 +21,27 @@ public class VideoController {
     public ResponseEntity<Object> getVideoList(@RequestParam(defaultValue = "1") Integer page,
                                        @RequestParam(defaultValue = "10") Integer pagesize){
 
-        return videoService.getVideoList(page,pagesize);
+        PageResult videoList = videoService.getVideoList(page, pagesize);
+        return ResponseEntity.ok(videoList);
     }
 
     //发布视频
     @PostMapping
     public ResponseEntity<Object> uploadVideo(MultipartFile videoThumbnail,MultipartFile videoFile,String text) throws IOException {
-        return videoService.uploadVideo(videoThumbnail,videoFile,text);
+        videoService.uploadVideo(videoThumbnail,videoFile,text);
+        return ResponseEntity.ok(null);
     }
 
-    ///smallVideos/:uid/userFocus
-    //发布视频
+    ///smallVideos/:uid/userFocus 关注
     @PostMapping("/{uid}/userFocus")
     public ResponseEntity<Object> userFocus(@PathVariable("uid") String uid) throws IOException {
         return videoService.userFocus(uid);
+    }
+
+    ///smallVideos/:uid/userUnFocus
+
+    @PostMapping("/{uid}/userUnFocus")
+    public ResponseEntity<Object> userUnFocus(@PathVariable("uid") String uid) throws IOException {
+        return videoService.userUnFocus(uid);
     }
 }

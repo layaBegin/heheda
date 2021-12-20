@@ -5,6 +5,7 @@ import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.domain.mongo.db.FollowUser;
 import com.tanhua.domain.mongo.db.Video;
 import com.tanhua.domain.mongo.vo.VideoVo;
 import com.tanhua.domain.vo.PageResult;
@@ -12,10 +13,13 @@ import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.dubbo.api.mongo.PublishApi;
 import com.tanhua.dubbo.api.mongo.VideoApi;
 import com.tanhua.server.utils.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class VideoService {
 
     @Reference
@@ -42,7 +47,10 @@ public class VideoService {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
-    public ResponseEntity<Object> getVideoList(Integer page, Integer pagesize) {
+
+    @Cacheable(value = "videoList", key = "#p0 + '_' + #p1")
+    public PageResult getVideoList(Integer page, Integer pagesize) {
+        log.info("===小视频加入缓存");
         Long userId = UserHolder.getUserId();
         PageResult pageResult =  videoApi.findVideoPage(page,pagesize);
         List<Video> videoList = (List<Video>)pageResult.getItems();
@@ -59,17 +67,25 @@ public class VideoService {
             videoVo.setAvatar(userInfo.getAvatar());
             videoVo.setNickname(userInfo.getNickname());
             //hasFocus 是否关注，应该是查redis
-
+            String key = "public_user_" + userId + "_Focus_" + video.getUserId();
+            String key1 = redisTemplate.opsForValue().get(key);
+            if (key1 != null){
+                videoVo.setHasFocus(1);
+            }else {
+                videoVo.setHasFocus(0);
+            }
             //hasLiked 是否点赞，查redis
+
             videoVos.add(videoVo);
         }
         pageResult.setItems(videoVos);
-        return ResponseEntity.ok(pageResult);
+        return pageResult;
     }
 
 
 
-    public ResponseEntity<Object> uploadVideo(MultipartFile videoThumbnail, MultipartFile videoFile, String text) throws IOException {
+    @CacheEvict(value = "videoList",allEntries = true )
+    public void uploadVideo(MultipartFile videoThumbnail, MultipartFile videoFile, String text) throws IOException {
         Long userId = UserHolder.getUserId();
         Video video = new Video();
         String url = ossTemplate.upload(videoThumbnail.getOriginalFilename(), videoThumbnail.getInputStream());
@@ -91,11 +107,29 @@ public class VideoService {
         video.setUserId(userId);
         System.out.println("==s:"+s);
         videoApi.save(video);
+    }
+
+    public ResponseEntity<Object> userFocus(String followUserId) {
+        Long userId = UserHolder.getUserId();
+        FollowUser followUser = new FollowUser();
+        followUser.setCreated(System.currentTimeMillis());
+        followUser.setFollowUserId(Long.valueOf(followUserId));
+        followUser.setUserId(userId);
+        videoApi.userFocus(followUser);
+        String key = "public_user_" + userId + "_Focus_" + followUserId;
+        redisTemplate.opsForValue().set(key,"1");
         return ResponseEntity.ok(null);
     }
 
-    public ResponseEntity<Object> userFocus(String uid) {
-
-        return null;
+    public ResponseEntity<Object> userUnFocus(String followUserId) {
+        Long userId = UserHolder.getUserId();
+        FollowUser followUser = new FollowUser();
+        followUser.setCreated(System.currentTimeMillis());
+        followUser.setFollowUserId(Long.valueOf(followUserId));
+        followUser.setUserId(userId);
+        videoApi.userUnFocus(followUser);
+        String key = "public_user_" + userId + "_Focus_" + followUserId;
+        redisTemplate.delete(key);
+        return ResponseEntity.ok(null);
     }
 }
