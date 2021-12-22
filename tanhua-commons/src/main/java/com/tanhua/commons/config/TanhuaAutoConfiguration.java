@@ -1,9 +1,11 @@
 package com.tanhua.commons.config;
 
 import com.tanhua.commons.properties.AipFaceProperties;
+import com.tanhua.commons.properties.HuanXinProperties;
 import com.tanhua.commons.properties.OssProperties;
 import com.tanhua.commons.properties.SmsProperties;
 import com.tanhua.commons.templates.AipFaceTemplate;
+import com.tanhua.commons.templates.HuanXinTemplate;
 import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.commons.templates.SmsTemplate;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -21,7 +23,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties({
         SmsProperties.class,
         OssProperties.class,
-        AipFaceProperties.class
+        AipFaceProperties.class,
+        HuanXinProperties.class
 })
 public class TanhuaAutoConfiguration {
 
@@ -44,5 +47,10 @@ public class TanhuaAutoConfiguration {
     @Bean
     public AipFaceTemplate aipFaceTemplate(AipFaceProperties properties) {
         return new AipFaceTemplate(properties);
+    }
+
+    @Bean
+    public HuanXinTemplate huanXinTemplate(HuanXinProperties properties) {
+        return new HuanXinTemplate(properties);
     }
 }

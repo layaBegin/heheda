@@ -43,4 +43,12 @@ public class RecommendUserApiImpl implements RecommendUserApi {
         return new PageResult(page,pagesize,(int)count,recommendUsers);
 
     }
+
+    @Override
+    public RecommendUser findByRecommendId(Long recommendId,Long userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("recommendUserId").is(recommendId).and("userId").is(userId));
+        RecommendUser recommendUser = mongoTemplate.findOne(query, RecommendUser.class);
+        return recommendUser;
+    }
 }

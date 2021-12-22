@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.spring.util.AnnotationUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tanhua.commons.templates.AipFaceTemplate;
+import com.tanhua.commons.templates.HuanXinTemplate;
 import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.commons.templates.SmsTemplate;
 import com.tanhua.domain.db.Question;
@@ -61,6 +62,8 @@ public class UserService {
     private AipFaceTemplate aipFaceTemplate;
     @Autowired
     private OssTemplate ossTemplate;
+    @Autowired
+    private HuanXinTemplate huanXinTemplate;
 
     @Value("${tanhua.secret}")//从配置文件里取值
     private String secret;
@@ -125,6 +128,8 @@ public class UserService {
                 Long id = userApi.save(user);
                 user.setId(id);
                 isNew = true;
+                //新用户注册到环信
+                huanXinTemplate.register(id);
             }
             String token = JwtUtils.createToken(user.getId(), phone, secret);
             //认证方案：token + redis
@@ -193,13 +198,19 @@ public class UserService {
      * @param
      * @return
      */
-    public ResponseEntity<Object> findUserInfoById() {
+    public ResponseEntity<Object> findUserInfoById(Long userID,Long huanxinID) {
         User user = UserHolder.get();
         if (user == null){
             return ResponseEntity.status(500).body(ErrorResult.error());
         }
-        Long id1 = user.getId();
-        UserInfo userInfo = userInfoApi.findById(id1);
+        Long userId = user.getId();
+        //2. 如果userID不为NULL，根据用户id查询
+        if (userID != null) {
+            userId = userID;
+        }else if(huanxinID != null){
+            userId = huanxinID;
+        }
+        UserInfo userInfo = userInfoApi.findById(userId);
         UserInfoVo userInfoVo = new UserInfoVo();
         //对象拷贝
         BeanUtils.copyProperties(userInfo,userInfoVo);

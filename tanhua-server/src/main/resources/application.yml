@@ -24,6 +24,12 @@ tanhua:
     appId: 22978042
     apiKey: G9BI9o5Gw9lKuP0RD2kvOsWS
     secretKey: RA0YDyM7ZTlGQqRd1qPyqAUVr1ze4j1s
+  huanxin:
+    url: http://a1.easemob.com/
+    orgName: 1115211221113776
+    appName: demo
+    clientId: YXA6FKqxNS_7QBKQxwIye0LfKw
+    clientSecret: YXA6JRNo_3KNOmFhaNJEIyleX3kmv-Q
 spring:
   redis:
     host: 192.168.199.130

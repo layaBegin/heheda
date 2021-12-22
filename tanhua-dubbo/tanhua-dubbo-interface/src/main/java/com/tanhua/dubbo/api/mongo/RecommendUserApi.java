@@ -12,4 +12,6 @@ public interface RecommendUserApi {
     RecommendUser queryWithMaxScore(Long id);
 
     PageResult findRecommendation(Long userId,Integer page,Integer pagesize);
+
+    RecommendUser findByRecommendId(Long recommendId,Long userId);
 }
