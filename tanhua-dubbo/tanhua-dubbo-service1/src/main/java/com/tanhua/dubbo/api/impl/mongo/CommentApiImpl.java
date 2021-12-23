@@ -15,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.BooleanOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -32,11 +33,16 @@ public class CommentApiImpl implements CommentApi {
 
     @Override
     public Long save(Comment comment) {
-        //1,commont表 添加一条评论
-        mongoTemplate.save(comment);
-        String col = comment.getCol();
-        //2,Publish 中添加点赞数；
+
         Query queryUpdate = new Query(Criteria.where("id").is(comment.getPublishId()));
+        Publish publish = mongoTemplate.findById(comment.getPublishId(), Publish.class);
+        Long userId = publish.getUserId();
+        //把comment表增加一个字段，谁评论谁，一目了然
+        //1,commont表 添加一条评论
+        comment.setPuserId(userId);
+        mongoTemplate.save(comment);
+
+        String col = comment.getCol();
         Update update = new Update();
         update.inc(col,1); //inc 增加或减少数字，原子增加，保证线程安全
         //2，更新publish 表中的点赞数
@@ -88,5 +94,18 @@ public class CommentApiImpl implements CommentApi {
         update.inc("likeCount",num);
         UpdateResult updateResult = mongoTemplate.updateFirst(query,update, Comment.class);
 
+    }
+
+    @Override
+    public PageResult findListByPuserId(Integer page, Integer pagesize, Long userId,Integer commentType) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("puserId").is(userId).and("commentType").is(commentType));
+        query.with(Sort.by(Sort.Order.desc("created")));
+        query.skip((page - 1) * pagesize).limit(pagesize);
+        List<Comment> comments = mongoTemplate.find(query, Comment.class);
+        Long counts = mongoTemplate.count(query, Comment.class);
+        PageResult pageResult = new PageResult(page,pagesize,counts.intValue(),comments);
+
+        return pageResult;
     }
 }

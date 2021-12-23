@@ -37,7 +37,7 @@ public class CommentService {
     private RedisTemplate<String,String> redisTemplate;
 
     public ResponseEntity<Object> saveLike(String publishId) {
-        Long userId = UserHolder.getUserId();
+        Long userId = UserHolder.getUserId();//登录的人点的赞
         ObjectId objectId = new ObjectId(publishId);
         Comment comment = new Comment();
         comment.setPublishId(objectId);

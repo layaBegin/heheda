@@ -5,12 +5,17 @@ import com.alibaba.fastjson.JSON;
 import com.tanhua.commons.templates.HuanXinTemplate;
 import com.tanhua.domain.db.Question;
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.domain.mongo.db.Comment;
 import com.tanhua.domain.mongo.db.Friend;
+import com.tanhua.domain.mongo.db.Publish;
 import com.tanhua.domain.mongo.vo.ContactVo;
+import com.tanhua.domain.mongo.vo.LikesVo;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.QuestionApi;
 import com.tanhua.dubbo.api.UserInfoApi;
+import com.tanhua.dubbo.api.mongo.CommentApi;
 import com.tanhua.dubbo.api.mongo.FriendApi;
+import com.tanhua.dubbo.api.mongo.PublishApi;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.BeanUtils;
@@ -18,11 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class IMService {
@@ -34,6 +38,10 @@ public class IMService {
     private QuestionApi questionApi;
     @Reference
     private FriendApi friendApi;
+    @Reference
+    private CommentApi commentApi;
+    @Reference
+    private PublishApi publishApi;
 
     public ResponseEntity<Object> replyQuestions(Integer userId, String reply) {
         //1. 查询当前登陆用户信息
@@ -81,4 +89,29 @@ public class IMService {
         pageResult.setItems(contactVoList);
         return pageResult;
     }
+
+    public PageResult getLikesList(Integer page, Integer pagesize,Integer commentType) {
+        Long userId = UserHolder.getUserId();
+        PageResult pageResult = commentApi.findListByPuserId(page,pagesize,userId,commentType);
+        List<Comment> items = (List<Comment>)pageResult.getItems();
+        List<LikesVo> likesVoList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(items)){
+            for (Comment comment :
+                    items) {
+
+                LikesVo likesVo = new LikesVo();
+                likesVo.setId(comment.getUserId().toString());
+                UserInfo userInfo = userInfoApi.findById(comment.getUserId());
+
+                likesVo.setAvatar(userInfo.getAvatar());
+                likesVo.setNickname(userInfo.getNickname());
+                likesVo.setCreateDate(new SimpleDateFormat("yyyy-MM-dd").format(comment.getCreated()));
+                likesVoList.add(likesVo);
+            }
+        }
+        pageResult.setItems(likesVoList);
+        return pageResult;
+    }
+
+
 }

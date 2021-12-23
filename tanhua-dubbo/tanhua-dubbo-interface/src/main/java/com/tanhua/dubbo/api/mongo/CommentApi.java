@@ -16,4 +16,6 @@ public interface CommentApi {
     PageResult findComments(String movementId, Integer page, Integer pagesize);
 
     void updateLikeCount(String id,Integer num);
+
+    PageResult findListByPuserId(Integer page, Integer pagesize, Long userId,Integer commentType);
 }
