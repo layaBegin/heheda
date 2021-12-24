@@ -15,6 +15,7 @@ import java.io.Serializable;
 @Document(collection = "quanzi_comment")
 public class Comment  implements Serializable {
 
+    private static final long serialVersionUID = 3620759133753465911L;
     private ObjectId id;
     private ObjectId publishId;    //发布id
     private Integer commentType;//评论类型，1-点赞，2-评论，3-喜欢

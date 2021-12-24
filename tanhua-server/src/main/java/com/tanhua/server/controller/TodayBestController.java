@@ -4,6 +4,7 @@ import com.tanhua.domain.db.User;
 import com.tanhua.domain.mongo.vo.RecommendationVo;
 import com.tanhua.domain.vo.ErrorResult;
 import com.tanhua.server.service.IMService;
+import com.tanhua.server.service.MovementsService;
 import com.tanhua.server.service.TodayBestService;
 import com.tanhua.server.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ public class TodayBestController {
     private TodayBestService todayBestService;
     @Autowired
     private IMService imService;
+    @Autowired
+    private MovementsService movementsService;
     @GetMapping("/todayBest")
     public ResponseEntity<Object> getTodayBest(){
         return todayBestService.getTodayBest();
@@ -42,6 +45,8 @@ public class TodayBestController {
     ///tanhua/:id/personalInfo
     @GetMapping("/{id}/personalInfo")
     public ResponseEntity<Object> getPersonalInfo(@PathVariable("id") Long id){
+        //调用这个接口的时候，写入vistor表
+        movementsService.setVisitors(id);
 
         return todayBestService.getPersonalInfo(id);
     }

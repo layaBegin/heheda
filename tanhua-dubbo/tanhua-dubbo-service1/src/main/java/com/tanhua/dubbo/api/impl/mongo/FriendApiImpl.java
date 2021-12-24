@@ -65,4 +65,20 @@ public class FriendApiImpl implements FriendApi {
 
         return pageResult;
     }
+
+    @Override
+    public Integer count(Long userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("userId").is(userId));
+        Long count = mongoTemplate.count(query, Friend.class);
+        return count.intValue();
+    }
+
+    @Override
+    public Boolean isFriend(Long userId, Long uid) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("userId").is(userId).and("friendId").is(uid));
+        Long count = mongoTemplate.count(query, Friend.class);
+        return (count > 0);
+    }
 }

@@ -1,6 +1,5 @@
 package com.tanhua.domain.mongo.db;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,18 +8,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-@Document(collection = "recommend_quanzi")
-public class RecommendQuanzi implements Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(collection = "user_like")
+public class UserLike implements Serializable {
 
-    private static final long serialVersionUID = -7604074040017554661L;
+    private static final long serialVersionUID = 5580738201456130952L;
     private ObjectId id;
     private Long userId;
-    private ObjectId publishId;
-    private Double score = 0D;
+    private Long likeUserId;
     private Long created;
-    private Long pid;
-
 }

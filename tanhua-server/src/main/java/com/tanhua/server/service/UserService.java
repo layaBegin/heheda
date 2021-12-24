@@ -16,6 +16,8 @@ import com.tanhua.domain.vo.SettingsVo;
 import com.tanhua.domain.vo.UserInfoVo;
 import com.tanhua.dubbo.api.*;
 import com.tanhua.domain.db.User;
+import com.tanhua.dubbo.api.mongo.FriendApi;
+import com.tanhua.dubbo.api.mongo.UserLikeApi;
 import com.tanhua.server.utils.JwtUtils;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -64,6 +66,10 @@ public class UserService {
     private OssTemplate ossTemplate;
     @Autowired
     private HuanXinTemplate huanXinTemplate;
+    @Reference
+    private FriendApi friendApi;
+    @Reference
+    private UserLikeApi userLikeApi;
 
     @Value("${tanhua.secret}")//从配置文件里取值
     private String secret;
@@ -309,5 +315,30 @@ public class UserService {
         Long id = user.getId();
         blackListApi.deleteBlackByUid(id,uid);
         return ResponseEntity.ok(null);
+    }
+
+    public ResponseEntity<Object> queryFoucsCounts() {
+        Long userId = UserHolder.getUserId();
+        Integer eachLoveCount = friendApi.count(userId);
+        Map<String,Integer> map = new HashMap<>();
+        map.put("eachLoveCount",eachLoveCount);
+        Integer loveCount =  userLikeApi.loveCount(userId);
+        Integer fanCount =  userLikeApi.fanCount(userId);
+
+        map.put("loveCount",loveCount);
+        map.put("fanCount",fanCount);
+
+        return ResponseEntity.ok(map);
+    }
+
+    public ResponseEntity<Object> alreadyLove(Long uid) {
+        Long userId = UserHolder.getUserId();
+        Boolean blove =  userLikeApi.alreadyLove(userId,uid);
+        if (!blove){
+            //是好友也让它点亮
+            Boolean bFriend = friendApi.isFriend(userId,uid);
+            blove = bFriend;
+        }
+        return ResponseEntity.ok(blove);
     }
 }

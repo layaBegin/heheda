@@ -7,11 +7,14 @@ import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.db.Comment;
 import com.tanhua.domain.mongo.db.Publish;
 import com.tanhua.domain.mongo.db.RecommendQuanzi;
+import com.tanhua.domain.mongo.db.Visitor;
 import com.tanhua.domain.mongo.vo.MovementsVo;
+import com.tanhua.domain.mongo.vo.VisitorVo;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.dubbo.api.mongo.CommentApi;
 import com.tanhua.dubbo.api.mongo.PublishApi;
+import com.tanhua.dubbo.api.mongo.VisitorApi;
 import com.tanhua.server.utils.RelativeDateFormat;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.dubbo.config.annotation.Reference;
@@ -37,8 +40,12 @@ public class MovementsService {
     private PublishApi publishApi;
     @Reference
     private UserInfoApi userInfoApi;
+    @Reference
+    private VisitorApi visitorApi;
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+
+
     /**
      * 接口名称：动态-发布
      */
@@ -173,5 +180,45 @@ public class MovementsService {
     }
 
 
+    public ResponseEntity<Object> getVisitors() {
+        Long userId = UserHolder.getUserId();
+        String key = "lastLoginTime_" + userId;
+        String date = redisTemplate.opsForValue().get(key);
+        List<Visitor> list = null;
+        if (date == null){
+             list = visitorApi.getVisitors(userId,5);
 
+        }else {
+             list = visitorApi.getVisitors(userId,Long.parseLong(date));
+        }
+        redisTemplate.opsForValue().set(key,String.valueOf(System.currentTimeMillis()));
+
+        List<VisitorVo> visitorVoList = new ArrayList<>();
+
+        for (Visitor v :
+                list) {
+            VisitorVo visitorVo = new VisitorVo();
+            visitorVo.setId(v.getVisitorId().intValue());
+            UserInfo userInfo = userInfoApi.findById(v.getVisitorId());
+            visitorVo.setAvatar(userInfo.getAvatar());
+            visitorVo.setGender(userInfo.getGender());
+            visitorVo.setNickname(userInfo.getNickname());
+            visitorVo.setAge(userInfo.getAge());
+            visitorVo.setTags(userInfo.getTags().split(","));
+            visitorVo.setFateValue(v.getFateValue());
+            visitorVoList.add(visitorVo);
+        }
+        return ResponseEntity.ok(visitorVoList);
+    }
+
+    public ResponseEntity<Object> setVisitors(Long id) {
+        Long userId = UserHolder.getUserId();
+        Visitor visitor = new Visitor();
+        visitor.setUserId(userId);
+        visitor.setVisitorId(id);
+        visitor.setDate(System.currentTimeMillis());
+        visitor.setFrom("首页");
+        visitorApi.save(visitor);
+        return null;
+    }
 }

@@ -94,4 +94,12 @@ public class MovementsController {
     }
 
 
+    ///movements/visitors 谁看过我
+    @GetMapping("/visitors")
+    public ResponseEntity<Object> getVisitors(){
+        return movementsService.getVisitors();
+    }
+
+
+
 }

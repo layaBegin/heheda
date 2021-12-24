@@ -40,4 +40,18 @@ public class UserInfoController {
         return userService.updateUserInfo(userInfo);
     }
 
+
+    ///users/counts
+
+    @GetMapping("/counts")
+    public ResponseEntity<Object> queryFoucsCounts(){
+        return userService.queryFoucsCounts();
+    }
+
+    ///users/:uid/alreadyLove
+    @GetMapping("/{uid}/alreadyLove")
+    public ResponseEntity<Object> queryFoucsCounts(@PathVariable("uid") Long uid){
+        return userService.alreadyLove(uid);
+    }
+
 }

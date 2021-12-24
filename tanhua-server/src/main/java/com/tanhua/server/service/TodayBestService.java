@@ -1,4 +1,5 @@
 package com.tanhua.server.service;
+import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.tanhua.commons.templates.HuanXinTemplate;
@@ -6,6 +7,7 @@ import com.tanhua.domain.db.Question;
 import com.tanhua.domain.db.User;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.db.RecommendUser;
+import com.tanhua.domain.mongo.db.UserLike;
 import com.tanhua.domain.mongo.vo.RecommendationVo;
 import com.tanhua.domain.mongo.vo.TodayBestVo;
 import com.tanhua.domain.vo.ErrorResult;
@@ -13,6 +15,7 @@ import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.QuestionApi;
 import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.dubbo.api.mongo.RecommendUserApi;
+import com.tanhua.dubbo.api.mongo.UserLikeApi;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.BeanUtils;
@@ -34,7 +37,11 @@ public class TodayBestService {
     private UserInfoApi userInfoApi;
     @Reference
     private QuestionApi questionApi;
+    @Reference
+    private UserLikeApi userLikeApi;
 
+    @Autowired
+    private IMService imService;
 
     public ResponseEntity<Object> getTodayBest() {
         //1,校验token
@@ -117,7 +124,23 @@ public class TodayBestService {
 
 
     public ResponseEntity<Object> love(Long id) {
+        Long userId = UserHolder.getUserId();
 
-        return null;
+        //如果对方已经喜欢我，成为好友，同时删除like表
+        if (userLikeApi.alreadyLove(id,userId)){
+            //1,好友列表添加
+            imService.addContacts(id.intValue());
+            //2,删除userLike表数据
+            userLikeApi.delete(id,userId);//userId为对方，对方先喜欢的我
+
+        }else{
+            UserLike userLike = new UserLike();
+            userLike.setUserId(userId);
+            userLike.setLikeUserId(id);
+            userLike.setCreated(System.currentTimeMillis());
+            userLikeApi.save(userLike);
+        }
+
+        return ResponseEntity.ok(null);
     }
 }
