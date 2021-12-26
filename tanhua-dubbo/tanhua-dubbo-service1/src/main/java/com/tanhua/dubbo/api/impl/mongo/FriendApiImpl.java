@@ -81,4 +81,15 @@ public class FriendApiImpl implements FriendApi {
         Long count = mongoTemplate.count(query, Friend.class);
         return (count > 0);
     }
+
+    @Override
+    public void delete(Long userId, Long uid) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("userId").is(userId).and("friendId").is(uid));
+        mongoTemplate.remove(query, Friend.class);
+        Query query1 = new Query();
+        query1.addCriteria(Criteria.where("userId").is(uid).and("friendId").is(userId));
+        mongoTemplate.remove(query1, Friend.class);
+
+    }
 }

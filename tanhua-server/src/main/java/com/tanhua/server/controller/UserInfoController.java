@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.jws.Oneway;
 import java.io.IOException;
 
 @RestController
@@ -52,6 +53,34 @@ public class UserInfoController {
     @GetMapping("/{uid}/alreadyLove")
     public ResponseEntity<Object> queryFoucsCounts(@PathVariable("uid") Long uid){
         return userService.alreadyLove(uid);
+    }
+
+    ///users/friends/:type
+    // 1 互相关注
+    //2 我关注
+    //3 粉丝
+    //4 谁看过我
+    @GetMapping("/friends/{type}")
+    public ResponseEntity<Object> friendsTypeList(
+            @PathVariable("type") Integer type,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "1") Integer pagesize,
+            String nickname){
+        return userService.friendsTypeList(type,page,pagesize);
+    }
+
+    ///users/fans/:uid
+    @PostMapping("/fans/{uid}")
+    public ResponseEntity<Object> loveFans(
+            @PathVariable("uid") Long uid){
+        return userService.loveFans(uid);
+    }
+
+    ///users/like/:uid
+    @DeleteMapping("/like/{uid}")
+    public ResponseEntity<Object> unLike(@PathVariable("uid") Long uid){
+
+        return  userService.unLike(uid);
     }
 
 }

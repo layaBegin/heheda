@@ -5,6 +5,7 @@ import com.tanhua.commons.properties.HuanXinProperties;
 import com.tanhua.commons.vo.HuanXinUser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -64,6 +65,27 @@ public class HuanXinTemplate {
         try {
             HttpEntity<String> httpEntity = new HttpEntity<>(headers);
             ResponseEntity<String> responseEntity = restTemplate.postForEntity(targetUrl, httpEntity, String.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 删除好友
+     * /{org_name}/{app_name}/users/{owner_username}/contacts/users/{friend_username}
+     */
+    public void deleteUsers(Long userId, Long friendId) {
+
+        String targetUrl = properties.getHuanXinUrl()+ "/users/" + userId + "/contacts/users/" + friendId;
+
+        // 请求头
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json ");
+        headers.add("Authorization", "Bearer " + getToken());
+
+        try {
+            HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> exchange = restTemplate.exchange(targetUrl, HttpMethod.DELETE, httpEntity, String.class);
         } catch (Exception e) {
             e.printStackTrace();
         }

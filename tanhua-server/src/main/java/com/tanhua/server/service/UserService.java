@@ -10,6 +10,10 @@ import com.tanhua.commons.templates.SmsTemplate;
 import com.tanhua.domain.db.Question;
 import com.tanhua.domain.db.Settings;
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.domain.mongo.db.Friend;
+import com.tanhua.domain.mongo.db.UserLike;
+import com.tanhua.domain.mongo.db.Visitor;
+import com.tanhua.domain.mongo.vo.FriendTypeVo;
 import com.tanhua.domain.vo.ErrorResult;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.domain.vo.SettingsVo;
@@ -17,7 +21,9 @@ import com.tanhua.domain.vo.UserInfoVo;
 import com.tanhua.dubbo.api.*;
 import com.tanhua.domain.db.User;
 import com.tanhua.dubbo.api.mongo.FriendApi;
+import com.tanhua.dubbo.api.mongo.RecommendUserApi;
 import com.tanhua.dubbo.api.mongo.UserLikeApi;
+import com.tanhua.dubbo.api.mongo.VisitorApi;
 import com.tanhua.server.utils.JwtUtils;
 import com.tanhua.server.utils.UserHolder;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -33,9 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -70,6 +74,13 @@ public class UserService {
     private FriendApi friendApi;
     @Reference
     private UserLikeApi userLikeApi;
+    @Reference
+    private VisitorApi visitorApi;
+    @Reference
+    private RecommendUserApi recommendUserApi;
+
+    @Autowired
+    private IMService imService;
 
     @Value("${tanhua.secret}")//从配置文件里取值
     private String secret;
@@ -340,5 +351,101 @@ public class UserService {
             blove = bFriend;
         }
         return ResponseEntity.ok(blove);
+    }
+
+    public ResponseEntity<Object> friendsTypeList(Integer type, Integer page, Integer pagesize) {
+        Long userId = UserHolder.getUserId();
+        PageResult pageResult = null;
+        List<FriendTypeVo> friendTypeVoList = new ArrayList<>();
+        if  (type == 1){//好友
+             pageResult =  friendApi.getContantPage(page,pagesize,userId);
+             List<Friend> items = (List<Friend>) pageResult.getItems();
+
+            for (Friend f :
+                    items) {
+                UserInfo userInfo = userInfoApi.findById(f.getFriendId());
+                FriendTypeVo friendTypeVo = new FriendTypeVo();
+                BeanUtils.copyProperties(userInfo,friendTypeVo);
+                friendTypeVo.setAlreadyLove(true);
+                friendTypeVo.setId(userInfo.getId().intValue());
+                Integer score =  recommendUserApi.queryScore(userId,f.getFriendId());
+                friendTypeVo.setMatchRate(score);friendTypeVoList.add(friendTypeVo);
+            }
+        }else  if (type == 2){//我喜欢的
+            pageResult =  userLikeApi.getLikePage(page,pagesize,userId);
+            List<UserLike> items = (List<UserLike>)pageResult.getItems();
+            for (UserLike userLike :
+                    items) {
+                FriendTypeVo friendTypeVo = new FriendTypeVo();
+                UserInfo userInfo = userInfoApi.findById(userLike.getLikeUserId());
+                BeanUtils.copyProperties(userInfo,friendTypeVo);
+                friendTypeVo.setId(userLike.getLikeUserId().intValue());
+                friendTypeVo.setAlreadyLove(true);
+                Integer score =  recommendUserApi.queryScore(userId,userLike.getLikeUserId());
+                friendTypeVo.setMatchRate(score);
+                friendTypeVoList.add(friendTypeVo);
+            }
+
+        }else if (type == 3){//粉丝
+            pageResult =  userLikeApi.getFansPage(page,pagesize,userId);
+            List<UserLike> items = (List<UserLike>)pageResult.getItems();
+            for (UserLike userLike :
+                    items) {
+                FriendTypeVo friendTypeVo = new FriendTypeVo();
+                UserInfo userInfo = userInfoApi.findById(userLike.getUserId());
+                BeanUtils.copyProperties(userInfo,friendTypeVo);
+                friendTypeVo.setId(userLike.getUserId().intValue());
+                friendTypeVo.setAlreadyLove(false);
+                Integer score = recommendUserApi.queryScore(userId, userLike.getUserId());
+                friendTypeVo.setMatchRate(score);
+                friendTypeVoList.add(friendTypeVo);
+            }
+        }else if (type == 4){//谁看过我列表
+            pageResult = visitorApi.getVisitorPage(page,pagesize,userId);
+            List<Visitor> items = (List<Visitor>) pageResult.getItems();
+            for (Visitor visitor :
+                    items) {
+                FriendTypeVo friendTypeVo = new FriendTypeVo();
+                UserInfo userInfo = userInfoApi.findById(visitor.getVisitorId());
+                BeanUtils.copyProperties(userInfo,friendTypeVo);
+                friendTypeVo.setId(visitor.getVisitorId().intValue());
+                friendTypeVo.setAlreadyLove(false);
+                friendTypeVo.setMatchRate(visitor.getFateValue());
+                Integer score = recommendUserApi.queryScore(userId, visitor.getVisitorId());
+                friendTypeVo.setMatchRate(score);
+                friendTypeVoList.add(friendTypeVo);
+            }
+        }
+        if (pageResult != null){
+            pageResult.setItems(friendTypeVoList);
+        }
+
+        return ResponseEntity.ok(pageResult);
+    }
+
+
+    //添加粉丝为好友
+    public ResponseEntity<Object> loveFans(Long uid) {
+        Long userId = UserHolder.getUserId();
+
+        //1,好友表添加，环信注册好友
+        imService.addContacts(uid.intValue());
+        //2.like移除
+        userLikeApi.delete(uid,userId);
+        return ResponseEntity.ok(null);
+    }
+
+    //取消喜欢
+    public ResponseEntity<Object> unLike(Long uid) {
+
+        Long userId = UserHolder.getUserId();
+        Boolean bFriend = friendApi.isFriend(userId, uid);
+        if (bFriend){
+            friendApi.delete(userId,uid);
+            imService.deleteContacts(uid);
+        }else {
+            userLikeApi.delete(userId,uid);
+        }
+        return null;
     }
 }

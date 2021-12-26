@@ -14,4 +14,6 @@ public interface RecommendUserApi {
     PageResult findRecommendation(Long userId,Integer page,Integer pagesize);
 
     RecommendUser findByRecommendId(Long recommendId,Long userId);
+
+    Integer queryScore(Long userId, Long likeUserId);
 }

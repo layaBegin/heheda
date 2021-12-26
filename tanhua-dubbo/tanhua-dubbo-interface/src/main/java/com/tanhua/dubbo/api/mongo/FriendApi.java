@@ -10,4 +10,6 @@ public interface FriendApi {
     Integer count(Long userId);
 
     Boolean isFriend(Long userId, Long uid);
+
+    void delete(Long userId, Long uid);
 }

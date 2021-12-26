@@ -1,7 +1,9 @@
 package com.tanhua.dubbo.api.impl.mongo;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tanhua.domain.mongo.db.RecommendUser;
 import com.tanhua.domain.mongo.db.Visitor;
+import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.mongo.VisitorApi;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +54,17 @@ public class VisitorApiImpl implements VisitorApi {
         }
         visitor.setFateValue(score);
         mongoTemplate.save(visitor);
+    }
+
+    @Override
+    public PageResult getVisitorPage(Integer page, Integer pagesize, Long userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("userId").is(userId));
+        query.with(Sort.by(Sort.Order.desc("date")));
+        query.skip((page - 1) * pagesize).limit(pagesize);
+        List<Visitor> list = mongoTemplate.find(query, Visitor.class);
+        Long count = mongoTemplate.count(query, Visitor.class);
+        PageResult pageResult = new PageResult(page,pagesize,count.intValue(),list);
+        return pageResult;
     }
 }

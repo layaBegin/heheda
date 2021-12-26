@@ -51,4 +51,18 @@ public class RecommendUserApiImpl implements RecommendUserApi {
         RecommendUser recommendUser = mongoTemplate.findOne(query, RecommendUser.class);
         return recommendUser;
     }
+
+    @Override
+    public Integer queryScore(Long userId, Long likeUserId) {
+        Query query = new Query(Criteria.where("userId").is(userId).and("recommendUserId").is(likeUserId));
+        RecommendUser one = mongoTemplate.findOne(query, RecommendUser.class);
+        Integer fature = 0;
+        if (one != null){
+            Double score = one.getScore();
+            fature = score.intValue();
+        }else {
+            fature = 60;
+        }
+        return fature;
+    }
 }

@@ -1,9 +1,11 @@
 package com.tanhua.dubbo.api.impl.mongo;
 
 import com.tanhua.domain.mongo.db.UserLike;
+import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.mongo.UserLikeApi;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -50,5 +52,29 @@ public class UserLikeApiImpl implements UserLikeApi {
         Query query = new Query();
         query.addCriteria(Criteria.where("likeUserId").is(id).and("userId").is(userId));
         mongoTemplate.remove(query, UserLike.class);
+    }
+
+    @Override
+    public PageResult getLikePage(Integer page, Integer pagesize, Long userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("userId").is(userId));
+        query.with(Sort.by(Sort.Order.desc("created")));
+        query.skip((page - 1) * pagesize).limit(pagesize);
+        List<UserLike> userLikes = mongoTemplate.find(query, UserLike.class);
+        Long counts = mongoTemplate.count(query, UserLike.class);
+        PageResult pageResult = new PageResult(page, pagesize, counts.intValue(), userLikes);
+        return pageResult;
+    }
+
+    @Override
+    public PageResult getFansPage(Integer page, Integer pagesize, Long userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("likeUserId").is(userId));
+        query.with(Sort.by(Sort.Order.desc("created")));
+        query.skip((page - 1) * pagesize).limit(pagesize);
+        List<UserLike> userLikes = mongoTemplate.find(query, UserLike.class);
+        Long counts = mongoTemplate.count(query, UserLike.class);
+        PageResult pageResult = new PageResult(page, pagesize, counts.intValue(), userLikes);
+        return pageResult;
     }
 }

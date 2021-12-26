@@ -71,6 +71,14 @@ public class IMService {
         return ResponseEntity.ok(null);
     }
 
+    public ResponseEntity<Object> deleteContacts(Long friendId) {
+        Long userId = UserHolder.getUserId();
+        friendApi.delete(userId,friendId);
+        //2. 删除到环信
+        huanXinTemplate.deleteUsers(UserHolder.getUserId(),friendId);
+        return ResponseEntity.ok(null);
+    }
+
     public PageResult getContantList(Integer page, Integer pagesize, String keyword) {
         Long userId = UserHolder.getUserId();
         PageResult pageResult = friendApi.getContantPage(page,pagesize,userId);
