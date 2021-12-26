@@ -73,4 +73,13 @@ public class TodayBestController {
 
         return todayBestService.love(id);
     }
+
+    ///tanhua/search
+
+    @GetMapping("/search")
+    public ResponseEntity<Object> search( String gender,Long distance){
+
+        return todayBestService.search(gender,distance);
+
+    }
 }

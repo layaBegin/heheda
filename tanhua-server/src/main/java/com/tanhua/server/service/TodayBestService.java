@@ -1,4 +1,6 @@
 package com.tanhua.server.service;
+import com.tanhua.domain.mongo.vo.UserLocationVo;
+import com.tanhua.dubbo.api.mongo.LocationApi;
 import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.databind.util.BeanUtil;
@@ -39,6 +41,8 @@ public class TodayBestService {
     private QuestionApi questionApi;
     @Reference
     private UserLikeApi userLikeApi;
+    @Reference
+    private LocationApi locationApi;
 
     @Autowired
     private IMService imService;
@@ -142,5 +146,29 @@ public class TodayBestService {
         }
 
         return ResponseEntity.ok(null);
+    }
+
+    public ResponseEntity<Object> search(String gender, Long distance) {
+        //1. 获取用户id
+        Long userId = UserHolder.getUserId();
+
+        //2. 调用api查询附近人
+        // 为什么不能返回UserLocation：因为其中的GeoJsonPoint对象没有实现序列化接口
+        // 所以，需要定义UserLocationVo并返回此对象
+        List<Long> locationList =locationApi.searchNear(userId,distance);
+        List<UserLocationVo> userLocationVoList = new ArrayList<>();
+        for (Long userId1 :
+                locationList) {
+            UserInfo userInfo = userInfoApi.findById(userId1);
+            if  (userInfo.getId() == userId) continue;
+            if (gender.equalsIgnoreCase(userInfo.getGender())){
+                UserLocationVo userLocationVo = new UserLocationVo();
+                userLocationVo.setUserId(userId1.intValue());
+                userLocationVo.setAvatar(userInfo.getAvatar());
+                userLocationVo.setNickname(userInfo.getNickname());
+                userLocationVoList.add(userLocationVo);
+            }
+        }
+        return ResponseEntity.ok(userLocationVoList);
     }
 }
