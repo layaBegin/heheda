@@ -1,0 +1,50 @@
+server:
+  port: 18083
+
+#配置redis
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/tanhua-manager?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+    username: root
+    password: root
+  redis:
+    host: 192.168.199.130
+    port: 6379
+dubbo:
+  application:
+    name: tanhua-manage
+  registry:
+    address: zookeeper://192.168.199.130:2181
+#配置短信平台信息
+tanhua:
+  secret: itcast
+  #替换成自己的 oss存储信息
+  sms:
+    signName: 袁小杰
+    templateCode: SMS_99320050
+    accessKey: LTAI6oNQblwg4mjc
+    secret: pBJAfwYp0bo4EZWiBA5LfOK1qgMHln
+  #替换成自己的 oss存储信息
+  oss:
+    accessKey: LTAI5tKyzYr9nE2uw6PxQkyd
+    secret: FZwdXC41ZBddJvb4Q4Weo09dJEBAhW
+    bucketName: test-tanhua1101
+    endpoint: oss-ap-southeast-6.aliyuncs.com
+    url: https://test-tanhua1101.oss-ap-southeast-6.aliyuncs.com
+  aip:
+    appId: 22978042
+    apiKey: G9BI9o5Gw9lKuP0RD2kvOsWS
+    secretKey: RA0YDyM7ZTlGQqRd1qPyqAUVr1ze4j1s
+  huanxin:
+    url: http://a1.easemob.com/
+    orgName: 1115211221113776
+    appName: demo
+    clientId: YXA6FKqxNS_7QBKQxwIye0LfKw
+    clientSecret: YXA6JRNo_3KNOmFhaNJEIyleX3kmv-Q
+#mybaits-plus
+mybatis-plus:
+  global-config:
+    db-config:
+      table-prefix: tb_    #数据库表前缀
+      id-type: auto        #数据库表主键的策略
