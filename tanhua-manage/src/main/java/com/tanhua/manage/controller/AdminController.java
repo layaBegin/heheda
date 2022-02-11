@@ -2,6 +2,8 @@ package com.tanhua.manage.controller;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.CircleCaptcha;
+import com.tanhua.manage.Utils.AdminHolder;
+import com.tanhua.manage.pojo.Admin;
 import com.tanhua.manage.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +19,8 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
-    ///system/users/verification
+
+
     //生成图片验证码
     @GetMapping("/verification")
     public void saveVerification(HttpServletResponse response,String uuid) throws IOException {
@@ -44,9 +47,23 @@ public class AdminController {
 
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Object> logout(@RequestHeader("Authorization") String token){
+        token = token.replace("Bearer ","");
+
+        return adminService.logout(token);
+    }
+
     //system/users/profile
     @PostMapping("/profile")
     public ResponseEntity<Object> getProfile(){
         return adminService.getProfile();
+    }
+
+    @GetMapping("/dashboard/summary")
+    public ResponseEntity<Object> getSummary(@RequestHeader("Authorization") String token){
+        Admin admin = AdminHolder.get();
+
+        return null;
     }
 }

@@ -18,6 +18,7 @@ public interface PublishApi {
 
     PageResult findRecommend(Long userId, Integer page, Integer pagesize);
 
+    //自己的动态表
     PageResult findAlbum(Integer page, Integer pagesize, Long userId);
 
     Publish findOne(String publishId);

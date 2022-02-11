@@ -26,11 +26,14 @@ public class VideoApiImpl implements VideoApi {
     }
 
     @Override
-    public PageResult findVideoPage(Integer page, Integer pagesize) {
+    public PageResult findVideoPage(Integer page, Integer pagesize,Long...userId) {
         Query query = new Query();
         query.with(Sort.by(Sort.Order.desc("created")));
         query.skip((page - 1) * pagesize).limit(pagesize);
-        List<Video> videoList =  mongoTemplate.find(query, Video.class);
+        if (userId != null){
+            query.addCriteria(Criteria.where("userId").is(userId[0]));
+        }
+        List<Video> videoList = mongoTemplate.find(query, Video.class);
         Long count = mongoTemplate.count(query, Video.class);
         System.out.println("===视频总条数count:"+count);
         PageResult pageResult = new PageResult(page, pagesize, count.intValue(), videoList);
@@ -50,6 +53,8 @@ public class VideoApiImpl implements VideoApi {
         mongoTemplate.remove(query,FollowUser.class);
 
     }
+
+
 
 
 }

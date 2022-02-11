@@ -39,5 +39,12 @@ public class UserInfoApiImpl implements UserInfoApi {
         return userInfoMapper.selectById(userId);
     }
 
+    @Override
+    public IPage<UserInfo> findByPage(Integer page, Integer pagesize) {
+        IPage<UserInfo> ipage1 = new Page(page,pagesize);
+        IPage<UserInfo> iPage = userInfoMapper.selectPage(ipage1, null);
+        return iPage;
+    }
+
 
 }

@@ -23,6 +23,5 @@ public interface UserInfoMapper extends BaseMapper<UserInfo> {
     @Delete("DELETE FROM `tb_black_list` WHERE user_id=#{uid} AND black_user_id=#{bUid}")
     void deleteBlackByUid(@Param("uid") Long uid,@Param("bUid") Long bUid);
 
-    @Select("")
-    IPage<UserInfo> findPage(IPage<UserInfo> iPage);
+
 }

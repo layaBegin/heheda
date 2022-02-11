@@ -16,4 +16,5 @@ public interface UserInfoApi {
 
     UserInfo findById(Long userId);
 
+    IPage<UserInfo> findByPage(Integer page, Integer pagesize);
 }

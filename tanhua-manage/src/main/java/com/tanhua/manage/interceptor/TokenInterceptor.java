@@ -30,15 +30,18 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (token == null){
             response.setStatus(401);
             return false;
+        }else {
+            //2,验证user 是否合法
+            Admin admin = adminService.findByToken(token);
+            if (admin == null){
+                response.setStatus(401);
+                return false;
+            }
+            //3，将user存入 当前线程，方便后面调用
+            AdminHolder.set(admin);
         }
-        //2,验证user 是否合法
-        Admin admin = adminService.findByToken(token);
-        if (admin == null){
-            response.setStatus(401);
-            return false;
-        }
-        //3，将user存入 当前线程，方便后面调用
-        AdminHolder.set(admin);
+
+
         return true;
     }
 

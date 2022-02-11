@@ -16,6 +16,8 @@ dubbo:
     name: tanhua-manage
   registry:
     address: zookeeper://192.168.199.130:2181
+  consumer:
+    check: false #测试环境配这个有用，有时候只想测试消费者服务是否报错，不用检查提供者是否启动，正式服改为true
 #配置短信平台信息
 tanhua:
   secret: itcast
