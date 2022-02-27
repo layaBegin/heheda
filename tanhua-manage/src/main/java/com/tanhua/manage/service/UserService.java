@@ -4,26 +4,28 @@ package com.tanhua.manage.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.domain.mongo.db.Comment;
 import com.tanhua.domain.mongo.db.Publish;
 import com.tanhua.domain.mongo.db.Video;
+import com.tanhua.domain.mongo.vo.CommentVo;
 import com.tanhua.domain.mongo.vo.MovementsVo;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.UserInfoApi;
+import com.tanhua.dubbo.api.mongo.CommentApi;
 import com.tanhua.dubbo.api.mongo.PublishApi;
 import com.tanhua.dubbo.api.mongo.VideoApi;
 import com.tanhua.manage.mapper.AdminMapper;
 import com.tanhua.manage.pojo.Admin;
-import com.tanhua.manage.vo.MMovementsVo;
-import com.tanhua.manage.vo.UserDetailVo;
-import com.tanhua.manage.vo.UserPageVo;
-import com.tanhua.manage.vo.VideoItemsVo;
+import com.tanhua.manage.vo.*;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -35,6 +37,8 @@ public class UserService extends ServiceImpl<AdminMapper, Admin> {
     private VideoApi videoApi;
     @Reference
     private PublishApi publishApi;
+    @Reference
+    private CommentApi commentApi;
 
     public ResponseEntity<Object> findByPage(Integer page, Integer pagesize) throws InvocationTargetException, IllegalAccessException {
         IPage<UserInfo> pages = userInfoApi.findByPage(page,pagesize);
@@ -111,6 +115,38 @@ public class UserService extends ServiceImpl<AdminMapper, Admin> {
     }
 
     public ResponseEntity<Object> getUserMessageDetail(String publishId) {
-        return null;
+        Publish publish = publishApi.findOne(publishId);
+        MMovementsVo mMovementsVo = new MMovementsVo();
+        BeanUtils.copyProperties(publish,mMovementsVo);
+        mMovementsVo.setId(publish.getId().toString());
+        mMovementsVo.setCreateDate(publish.getCreated().intValue());
+        mMovementsVo.setImageContent(publish.getMedias().toArray(new String[]{}));
+        mMovementsVo.setUserId(publish.getUserId().intValue());
+        mMovementsVo.setState("2");
+
+        UserInfo userInfo = userInfoApi.findById(publish.getUserId());
+        mMovementsVo.setAvatar(userInfo.getAvatar());
+        mMovementsVo.setNickname(userInfo.getNickname());
+        return ResponseEntity.ok(mMovementsVo);
+    }
+
+    public ResponseEntity<Object> getComment(Integer page, Integer pagesize, String sortProp, String sortOrder, String messageID) {
+        PageResult pageResult = commentApi.findComments(messageID, page, pagesize);
+        List<Comment> comments = (List<Comment>) pageResult.getItems();
+        List<MessageCommentVo> commentsVo = new ArrayList<>();
+        for (Comment comment :
+                comments) {
+            MessageCommentVo commentVo = new MessageCommentVo();
+            BeanUtils.copyProperties(comment,commentVo);
+            UserInfo userInfo = userInfoApi.findById(comment.getUserId());
+            BeanUtils.copyProperties(userInfo,commentVo);
+            commentVo.setId(comment.getId().toString());
+            commentVo.setUserId(userInfo.getId().intValue());
+            commentVo.setCreateDate(comment.getCreated().intValue());
+
+            commentsVo.add(commentVo);
+        }
+        pageResult.setItems(commentsVo);
+        return ResponseEntity.ok(pageResult);
     }
 }

@@ -80,7 +80,7 @@ public class CommentApiImpl implements CommentApi {
         Query query = new Query(Criteria.where("publishId").is(new ObjectId(movementId)).and("commentType").is(2));
         query.with(Sort.by(Sort.Order.desc("created")));
         query.limit(pagesize).skip((page-1)* pagesize);
-        List<Comment> comments =  mongoTemplate.find(query,Comment.class);
+        List<Comment> comments = mongoTemplate.find(query,Comment.class);
 
 
         PageResult pageResult = new PageResult(page,pagesize,comments.size(),comments);

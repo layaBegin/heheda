@@ -42,4 +42,9 @@ public class UserController {
 
         return userService.getUserMessageDetail(publishId);
     }
+
+    @GetMapping("/messages/comments")
+    public ResponseEntity<Object> getComment(@RequestParam(defaultValue = "1") Integer page,@RequestParam(defaultValue = "10") Integer pagesize,String sortProp,String sortOrder,String messageID){
+        return userService.getComment(page,pagesize,sortProp,sortOrder,messageID);
+    }
 }
